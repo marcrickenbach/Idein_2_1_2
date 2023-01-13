@@ -14,20 +14,20 @@
 
 #include "stdlib.h"
 
-#define ADC_READY 			(1U<<0)
-#define LIGHT_RESOLUTION	0
-#define RED_THRESHOLD 		adc_value[0]
-#define GREEN_THRESHOLD 	adc_value[1]
-#define BLUE_THRESHOLD 		adc_value[2]
-#define IR_THRESHOLD 		adc_value[3]
-#define RED_HIGH 			GPIOA->ODR |= (1U<<5)
-#define RED_LOW 			GPIOA->ODR &= ~(1U<<5)
-#define GREEN_HIGH 			GPIOA->ODR |= (1U<<6)
-#define GREEN_LOW 			GPIOA->ODR &= ~(1U<<6)
-#define BLUE_HIGH 			GPIOA->ODR |= (1U<<7)
-#define BLUE_LOW 			GPIOA->ODR &= ~(1U<<7)
-#define IR_HIGH 			GPIOB->ODR |= (1U<<1)
-#define IR_LOW				GPIOB->ODR &= ~(1U<<1)
+#define ADC_READY (1U<<0)
+#define LIGHT_RESOLUTION 0
+#define RED_THRESHOLD adc_value[0]
+#define GREEN_THRESHOLD adc_value[1]
+#define BLUE_THRESHOLD adc_value[2]
+#define IR_THRESHOLD adc_value[3]
+#define RED_HIGH GPIOA->ODR |= (1U<<5)
+#define RED_LOW GPIOA->ODR &= ~(1U<<5)
+#define GREEN_HIGH GPIOA->ODR |= (1U<<6)
+#define GREEN_LOW GPIOA->ODR &= ~(1U<<6)
+#define BLUE_HIGH GPIOA->ODR |= (1U<<7)
+#define BLUE_LOW GPIOA->ODR &= ~(1U<<7)
+#define IR_HIGH GPIOB->ODR |= (1U<<1)
+#define IR_LOW GPIOB->ODR &= ~(1U<<1)
 
 // Handlers
 void NMI_Handler() { }
@@ -103,7 +103,7 @@ uint32_t GREEN_TOTAL = 0;
 uint32_t BLUE_TOTAL = 0;
 uint32_t IR_TOTAL = 0;
 
-uint32_t whileTester = 0;
+
 
 int main(void) {
 
@@ -119,11 +119,9 @@ int main(void) {
 	configure_light_sensor ();
 
 	while(1){
-		if(flag_bank & ADC_READY) {
-			read_sensor();
-			comparator_circuit();
-			whileTester++;
-			whileTester = whileTester % 1000;
+	    if(flag_bank & ADC_READY) {
+            read_sensor();
+            comparator_circuit();
 			flag_bank &= ~ ADC_READY;
 		}
 
@@ -134,35 +132,35 @@ int main(void) {
 
 void clk_init(void) {	// checked, ok
 	// Enable HSI_16
-    RCC->CR 		|= 	(1U<<0);
+    RCC->CR |= 	(1U<<0);
     // Wait for HSI_RDY Flag, then we can keep going
 	while (!(RCC->CR & 	(1U<<2))){};
     // Set the Power Enable CLock
-	RCC->APB1ENR 	|= 	(1U<<28);
+	RCC->APB1ENR |= (1U<<28);
     // Set the VOS, Voltage Scaling Range, to Range 1 (01), bits 12:11.
-	PWR->CR 		|= 	(1U<<11);
-	PWR->CR 		&= 	~(1U<<12);
+	PWR->CR |= 	(1U<<11);
+	PWR->CR &= 	~(1U<<12);
     // Set SYSCFG Enable
-	RCC->APB2ENR 	|= 	(1U<<0);
+	RCC->APB2ENR |= (1U<<0);
     // PreRead is Enabled (bit 6)
-	FLASH->ACR		= 	0x40;
+	FLASH->ACR = 0x40;
     // AHB, divided by 2[1000]
-	RCC->CFGR 		|= 	(1U<<7);
+	RCC->CFGR |= (1U<<7);
     // APB1 not divided, 0xx bits 10-8
-	RCC->CFGR 		&= 	~(1U<<10);
+	RCC->CFGR &= ~(1U<<10);
     // APB2 not divided, 0xx bits 13-11
-	RCC->CFGR 		&= 	~(1U<<13);
+	RCC->CFGR &= ~(1U<<13);
     // Set PLL Multiplication factor to 4 [0001] in bits 21:18
-	RCC->CFGR 		|= 	(1U<<18);
+	RCC->CFGR |= (1U<<18);
     // Set PLL Division factor to 2 [01] in bits 23:22
-	RCC->CFGR 		|= 	(1U<<22);
+	RCC->CFGR |= (1U<<22);
     // RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC->CR 		|= 	(1U<<24);
+	RCC->CR |= (1U<<24);
     // Wait for PLL_RDY Flag, then continue on.
 	while (!(RCC->CR & (1U<<25))){};
     // Select the PLL as SYSCLK Source, [11]in bits 1:0
-	RCC->CFGR 		|= 	(1U<<0);
-	RCC->CFGR 		|= 	(1U<<1);
+	RCC->CFGR |= (1U<<0);
+	RCC->CFGR |= (1U<<1);
     // Wait for Status Flag to read PLL [11] in bits 3:2
 	while (!(RCC->CFGR & (3U<<2))){};
     // Enable I2C1 Clock
@@ -174,18 +172,18 @@ void clk_init(void) {	// checked, ok
 
 void gpio_init(void) {	// checked, ok
     // Enable GPIO A and B Clocks
-	RCC->IOPENR 	|= 	(1U<<0);
-	RCC->IOPENR 	|= 	(1U<<1);
-	GPIOA->MODER 	= 	0xebeb54ff;
-	GPIOA->OTYPER 	= 	0x600;
-	GPIOA->OSPEEDR 	= 	0xc3cfc00;
-	GPIOA->PUPDR 	=	0x24000000;
-	GPIOB->MODER 	= 	0xfffffff7;
-	GPIOB->OTYPER 	= 	0x0;
-	GPIOB->OSPEEDR 	= 	0xc;
-	GPIOB->PUPDR 	=	0x0;
-	GPIOA->AFR[1]	|= (1U<<4);
-	GPIOA->AFR[1]	|= (1U<<8);
+	RCC->IOPENR |= (1U<<0);
+	RCC->IOPENR |= (1U<<1);
+	GPIOA->MODER = 0xebeb54ff;
+	GPIOA->OTYPER = 0x600;
+	GPIOA->OSPEEDR = 0xc3cfc00;
+	GPIOA->PUPDR = 0x24000000;
+	GPIOB->MODER = 0xfffffff7;
+	GPIOB->OTYPER = 0x0;
+	GPIOB->OSPEEDR = 0xc;
+	GPIOB->PUPDR =	0x0;
+	GPIOA->AFR[1] |= (1U<<4);
+	GPIOA->AFR[1] |= (1U<<8);
 }
 
 
