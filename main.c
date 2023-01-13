@@ -132,25 +132,24 @@ int main(void) {
 
 
 void clk_init(void) {	// checked, ok
-	RCC->CR 		|= 	(1U<<0);				// Enable HSI_16
-	while (!(RCC->CR & 	(1U<<2))){};			// Wait for HSI_RDY Flag, then we can keep going
-	RCC->APB1ENR 	|= 	(1U<<28);				// Set the Power Enable CLock
-	PWR->CR 		|= 	(1U<<11);				// Set the VOS, Voltage Scaling Range, to Range 1 (01), bits 12:11.
+	RCC->CR 		|= 	(1U<<0);		// Enable HSI_16
+	while (!(RCC->CR & 	(1U<<2))){};	// Wait for HSI_RDY Flag, then we can keep going
+	RCC->APB1ENR 	|= 	(1U<<28);		// Set the Power Enable CLock
+	PWR->CR 		|= 	(1U<<11);		// Set the VOS, Voltage Scaling Range, to Range 1 (01), bits 12:11.
 	PWR->CR 		&= 	~(1U<<12);
-	RCC->APB2ENR 	|= 	(1U<<0);				// Set SYSCFG Enable
-	FLASH->ACR		= 	0x40;					// PreRead is Enabled (bit 6)
-	RCC->CFGR 		|= 	(1U<<7);				// AHB, divided by 2[1000]
-	RCC->CFGR 		&= 	~(1U<<10);				// APB1 not divided, 0xx bits 10-8
-	RCC->CFGR 		&= 	~(1U<<13);				// APB2 not divided, 0xx bits 13-11
-	RCC->CFGR 		|= 	(1U<<18);				// Set PLL Multiplication factor to 4 [0001] in bits 21:18
-	RCC->CFGR 		|= 	(1U<<22);				// Set PLL Division factor to 2 [01] in bits 23:22
-	RCC->CR 		|= 	(1U<<24);				// RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	while (!(RCC->CR & (1U<<25))){};			// Wait for PLL_RDY Flag, then continue on.
-	RCC->CFGR 		|= 	(1U<<0);				// Select the PLL as the System Clock (SYSCLK) Source, [11] in bits 1:0
+	RCC->APB2ENR 	|= 	(1U<<0);		// Set SYSCFG Enable
+	FLASH->ACR		= 	0x40;			// PreRead is Enabled (bit 6)
+	RCC->CFGR 		|= 	(1U<<7);		// AHB, divided by 2[1000]
+	RCC->CFGR 		&= 	~(1U<<10);		// APB1 not divided, 0xx bits 10-8
+	RCC->CFGR 		&= 	~(1U<<13);		// APB2 not divided, 0xx bits 13-11
+	RCC->CFGR 		|= 	(1U<<18);		// Set PLL Multiplication factor to 4 [0001] in bits 21:18
+	RCC->CFGR 		|= 	(1U<<22);		// Set PLL Division factor to 2 [01] in bits 23:22
+	RCC->CR 		|= 	(1U<<24);		// RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	while (!(RCC->CR & (1U<<25))){};	// Wait for PLL_RDY Flag, then continue on.
+	RCC->CFGR 		|= 	(1U<<0);		// Select the PLL as SYSCLK Source, [11]in bits 1:0
 	RCC->CFGR 		|= 	(1U<<1);
-	while (!(RCC->CFGR & (3U<<2))){};			// Wait for System Clock Switch Status Flag to read PLL [11] in bits 3:2
-
-	RCC->APB1ENR |= (1U<<21);					// Enable I2C1 Clock
+	while (!(RCC->CFGR & (3U<<2))){};	// Wait for Status Flag to read PLL [11] in bits 3:2
+	RCC->APB1ENR |= (1U<<21);			// Enable I2C1 Clock
 
 }
 
@@ -200,21 +199,21 @@ void adc_init() {	//checked, ok, fixed channel select
 
 
 void dma_channel1_init(void) {
-	RCC->AHBENR |= (1U<<0);					// Enable Clock Access to the DMA
-	DMA1_Channel1->CCR &= ~(1U<<0);			// Disable the DMA Channel 1, CxS 0000 so we can configure it
+	RCC->AHBENR |= (1U<<0);				// Enable Clock Access to the DMA
+	DMA1_Channel1->CCR &= ~(1U<<0);		// Disable the DMA Channel 1, CxS 0000 so we can configure it
 	while(DMA1_Channel1->CCR & (1U<<0)){}
-	DMA1->IFCR |= (1U<<0);					// Clear all interrupt flags for Channel 1, CxS 0000
-	DMA1_Channel1->CCR &= ~(1U<<12);		// Set Channel Priority to High
+	DMA1->IFCR |= (1U<<0);				// Clear all interrupt flags for Channel 1, CxS 0000
+	DMA1_Channel1->CCR &= ~(1U<<12);	// Set Channel Priority to High
 	DMA1_Channel1->CCR |= (1U<<13);
-	DMA1_Channel1->CCR &= ~(1U<<4);			// Set Data Transfer Direction, read from Peripheral (ADC)
-	DMA1_Channel1->CCR |= (1U<<5);			// Set Circular Mode
-	DMA1_Channel1->CCR &= ~(1U<<6);			// Set Peripheral Increment Mode to disabled
-	DMA1_Channel1->CCR |= (1U<<7);			// Set Memory Increment Mode to enabled
-	DMA1_Channel1->CCR &= ~(1U<<10);		// Set Memory Data Size, 32 bit
+	DMA1_Channel1->CCR &= ~(1U<<4);		// Set Data Transfer Direction, read from Peripheral (ADC)
+	DMA1_Channel1->CCR |= (1U<<5);		// Set Circular Mode
+	DMA1_Channel1->CCR &= ~(1U<<6);		// Set Peripheral Increment Mode to disabled
+	DMA1_Channel1->CCR |= (1U<<7);		// Set Memory Increment Mode to enabled
+	DMA1_Channel1->CCR &= ~(1U<<10);	// Set Memory Data Size, 32 bit
 	DMA1_Channel1->CCR |= (1U<<11);
-	DMA1_Channel1->CCR &= ~(1U<<8);			// Set Peripheral Size to 32 bit
+	DMA1_Channel1->CCR &= ~(1U<<8);		// Set Peripheral Size to 32 bit
 	DMA1_Channel1->CCR |= (1U<<9);
-	DMA1_Channel1->CCR |= (1U<<1);			// Enable Interrupted at Full Transfer, TCIE, enabled
+	DMA1_Channel1->CCR |= (1U<<1);		// Enable Interrupted at Full Transfer, TCIE, enabled
 	DMA1_Channel1->CCR |= (1U<<2);
 	DMA1_Channel1->CCR |= (1U<<3);
 }
@@ -224,20 +223,20 @@ void i2c_init(void) {
 	GPIOA->OTYPER |= (1U<<9) | (1U<<10);	// Open Drain on I2C pins, PA9, PA10
 	GPIOA->OSPEEDR |= (3U<<18) | (3U<<20);	// High Speed, Pins PA9, PA10
 	GPIOA->PUPDR |= (1U<<18) | (1U<<20);	// Pull-Up on Pins PA9, PA10
-	RCC->APB1RSTR |= (1U<<21);				// Resets I2C1
-	RCC->APB1RSTR &= ~(1U<<21);				// Takes out of Reset State I2C1
-	I2C1->CR1 = 0;							// clear
+	RCC->APB1RSTR |= (1U<<21);			// Resets I2C1
+	RCC->APB1RSTR &= ~(1U<<21);			// Takes out of Reset State I2C1
+	I2C1->CR1 = 0;						// clear
 	I2C1->CR2 = 0;
-	I2C1->TIMINGR = 0x0010061A;				// Set Timing Register Properties
+	I2C1->TIMINGR = 0x0010061A;			// Set Timing Register Properties
 	I2C1->OAR1 = 0;
 	I2C1->OAR2 = 0;
-	I2C1->CR2 |=  (0x52<<1); 				// Set Target address
-	I2C1->CR1 &= ~(1U<<12); 				// Analog Filter Enable
-	I2C1->CR1 |= (0U<<8);					// Digital Filter Disable
-	I2C1->CR1 &= ~(1U<<17);					// Clock stretching disabled
-	I2C1->CR2 &= ~(1U<<11);					// ADD10 to 0 for 7-bit, 1 for 10-bit Addressing Mode (pg612)
-	SYSCFG->CFGR2 |= (1U<<12);				// Fast Mode is Enabled
-	I2C1->CR1 |= (1U<<0);					// SET PE bit in I2C_CR1
+	I2C1->CR2 |=  (0x52<<1); 			// Set Target address
+	I2C1->CR1 &= ~(1U<<12); 			// Analog Filter Enable
+	I2C1->CR1 |= (0U<<8);				// Digital Filter Disable
+	I2C1->CR1 &= ~(1U<<17);				// Clock stretching disabled
+	I2C1->CR2 &= ~(1U<<11);				// ADD10 to 0 for 7-bit, 1 for 10-bit Addressing Mode
+	SYSCFG->CFGR2 |= (1U<<12);			// Fast Mode is Enabled
+	I2C1->CR1 |= (1U<<0);				// SET PE bit in I2C_CR1
 }
 
 
