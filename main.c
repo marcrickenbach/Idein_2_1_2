@@ -399,6 +399,7 @@ void configure_light_sensor () {
     	TEST |= (1U<<2);
     }
 
+    // Visual Feedback for Sucessful startup 
     if (TEST == 7) {
     	RED_HIGH;
     	GREEN_HIGH;
